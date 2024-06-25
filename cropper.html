@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link  rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.css">
+  <style>
+    #camera {
+      width: 100%;
+      max-width: 400px;
+    }
+    #capture {
+      margin-top: 20px;
+    }
+  </style>
+</head>
+<body>
+  <video id="camera" autoplay></video>
+  <canvas id="canvas" style="display:none;"></canvas>
+  <button id="capture">Capture and Crop</button>
+  <img id="cropped-image" style="display:none;">
+  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.12/cropper.min.js"></script>
+  <script>
+    const video = document.getElementById('camera');
+    const canvas = document.getElementById('canvas');
+    const captureButton = document.getElementById('capture');
+    const croppedImage = document.getElementById('cropped-image');
+    
+    // Get access to the camera
+    navigator.mediaDevices.getUserMedia({ video: true }).then((stream) => {
+      video.srcObject = stream;
+    });
+
+    captureButton.addEventListener('click', () => {
+      // Draw video frame to canvas
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      // Convert canvas to image
+      const dataUrl = canvas.toDataURL('image/png');
+      const imgElement = document.createElement('img');
+      imgElement.src = dataUrl;
+      
+      // Initialize Cropper.js
+      const cropper = new Cropper(imgElement, {
+        aspectRatio: 1,
+        viewMode: 1,
+        autoCropArea: 1,
+        ready() {
+          // Cropping the image
+          const croppedCanvas = cropper.getCroppedCanvas();
+          croppedImage.src = croppedCanvas.toDataURL('image/png');
+          croppedImage.style.display = 'block';
+          cropper.destroy(); // Clean up
+        }
+      });
+      
+      document.body.appendChild(imgElement); // Attach img to body to trigger Cropper
+    });
+  </script>
+</body>
+</html>

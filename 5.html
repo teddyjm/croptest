@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <style>
+    #camera {
+      width: 100%;
+      max-width: 400px;
+    }
+    #capture {
+      margin-top: 20px;
+    }
+    #cropped-image {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <video id="camera" autoplay></video>
+  <canvas id="canvas" style="display:none;"></canvas>
+  <button id="capture">Capture and Crop</button>
+  <img id="cropped-image">
+
+  <script>
+    const video = document.getElementById('camera');
+    const canvas = document.getElementById('canvas');
+    const captureButton = document.getElementById('capture');
+    const croppedImage = document.getElementById('cropped-image');
+    
+    navigator.mediaDevices.getUserMedia({ video: true }).then((stream) => {
+      video.srcObject = stream;
+    });
+
+    captureButton.addEventListener('click', () => {
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      const ctx = canvas.getContext('2d');
+      const cropX = 50;
+      const cropY = 50;
+      const cropWidth = 200;
+      const cropHeight = 200;
+      const croppedCanvas = document.createElement('canvas');
+      croppedCanvas.width = cropWidth;
+      croppedCanvas.height = cropHeight;
+      croppedCanvas.getContext('2d').drawImage(canvas, cropX, cropY, cropWidth, cropHeight, 0, 0, cropWidth, cropHeight);
+
+      croppedImage.src = croppedCanvas.toDataURL('image/png');
+      croppedImage.style.display = 'block';
+    });
+  </script>
+</body>
+</html>

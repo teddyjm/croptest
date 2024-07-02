@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Camera and Crop</title>
+    <link href="https://cdn.jsdelivr.net/npm/cropperjs@1.5.12/dist/cropper.min.css" rel="stylesheet">
+    <style>
+        #videoElement, #preview, #croppedImage {
+            max-width: 100%;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <button id="startButton">Start</button>
+    <video id="videoElement" autoplay></video>
+    <button id="takePhotoButton" style="display:none;">Take Photo</button>
+    <img id="preview" style="display:none;">
+    <div id="cropContainer" style="display:none;">
+        <button id="cropButton">Crop</button>
+    </div>
+    <img id="croppedImage" style="display:none;">
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/cropperjs@1.5.12/dist/cropper.min.js"></script>
+    <script>
+        $(document).ready(function() {
+    const video = document.getElementById('videoElement');
+    const startButton = $('#startButton');
+    const takePhotoButton = $('#takePhotoButton');
+    const preview = $('#preview');
+    const cropContainer = $('#cropContainer');
+    const cropButton = $('#cropButton');
+    const croppedImage = $('#croppedImage');
+    let cropper;
+
+    // Start video stream
+    startButton.click(function() {
+        navigator.mediaDevices.getUserMedia({ video: true })
+            .then(stream => {
+                video.srcObject = stream;
+                video.play();
+                takePhotoButton.show();
+            })
+            .catch(err => console.error("Error accessing camera: ", err));
+    });
+
+    // Capture photo
+    takePhotoButton.click(function() {
+        const canvas = document.createElement('canvas');
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        const context = canvas.getContext('2d');
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        const dataUrl = canvas.toDataURL('image/png');
+        preview.attr('src', dataUrl).show();
+        cropContainer.show();
+        video.srcObject.getTracks().forEach(track => track.stop()); // Stop video stream
+
+        // Initialize Cropper.js
+        if (cropper) {
+            cropper.destroy();
+        }
+        cropper = new Cropper(preview[0], {
+            aspectRatio: 1, // You can set this to your preferred aspect ratio
+            viewMode: 1
+        });
+    });
+
+    // Crop the image
+    cropButton.click(function() {
+        const croppedCanvas = cropper.getCroppedCanvas();
+        const croppedDataUrl = croppedCanvas.toDataURL('image/png');
+        croppedImage.attr('src', croppedDataUrl).show();
+
+        // You can now save `croppedDataUrl` or upload it to a server
+    });
+});
+
+    </script>
+</body>
+</html>

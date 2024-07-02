@@ -48,18 +48,20 @@
                 video.play();
                 takePhotoButton.show();
 
-                // Set up the overlay for cropping
-                const rectWidth = video.videoWidth * 0.8;
+                // Adjust overlay dimensions and position
+                video.addEventListener('loadeddata', function() {
+                    const rectWidth = video.videoWidth * 0.8;
                     const rectHeight = video.videoHeight * 0.5;
                     const rectX = (video.videoWidth - rectWidth) / 2;
                     const rectY = (video.videoHeight - rectHeight) / 2;
 
-                overlay.css({
-                    width: rectWidth,
-                    height: rectHeight,
-                    left: rectX,
-                    top: rectY
-                }).show();
+                    overlay.css({
+                        width: rectWidth,
+                        height: rectHeight,
+                        left: rectX,
+                        top: rectY
+                    }).show();
+                });
             })
             .catch(err => console.error("Error accessing camera: ", err));
     });

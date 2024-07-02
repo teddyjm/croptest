@@ -36,19 +36,17 @@
     const video = document.getElementById('videoElement');
     const startButton = $('#startButton');
     const takePhotoButton = $('#takePhotoButton');
-    const cropButton = $('#cropButton');
     const croppedImage = $('#croppedImage');
     const overlay = $('#overlay');
 
-    // Start video stream
-    startButton.click(function() {
-        navigator.mediaDevices.getUserMedia({ video: true })
+    // Function to start video stream with the given constraints
+    function startVideo(constraints) {
+        navigator.mediaDevices.getUserMedia(constraints)
             .then(stream => {
                 video.srcObject = stream;
                 video.play();
                 takePhotoButton.show();
 
-                // Adjust overlay dimensions and position
                 video.addEventListener('loadeddata', function() {
                     const rectWidth = video.videoWidth * 0.8;
                     const rectHeight = video.videoHeight * 0.5;
@@ -64,6 +62,23 @@
                 });
             })
             .catch(err => console.error("Error accessing camera: ", err));
+    }
+
+    // Start button click handler
+    startButton.click(function() {
+        navigator.mediaDevices.enumerateDevices()
+            .then(devices => {
+                let backCameraId = null;
+                devices.forEach(device => {
+                    if (device.kind === 'videoinput' && device.label.toLowerCase().includes('back')) {
+                        backCameraId = device.deviceId;
+                    }
+                });
+
+                const constraints = backCameraId ? { video: { deviceId: { exact: backCameraId } } } : { video: true };
+                startVideo(constraints);
+            })
+            .catch(err => console.error("Error enumerating devices: ", err));
     });
 
     // Capture photo
@@ -94,11 +109,11 @@
             // Hide elements after cropping
             video.pause();
             takePhotoButton.hide();
-            cropButton.hide();
             overlay.hide();
         };
     });
 });
+
 
     </script>
 </body>

@@ -49,8 +49,8 @@
                 takePhotoButton.show();
 
                 video.addEventListener('loadeddata', function() {
-                    const rectWidth = videoContainer.width * 0.8;
-                    const rectHeight = videoContainer.height * 0.5;
+                    const rectWidth = videoContainer.offsetWidth * 0.8;
+                    const rectHeight = videoContainer.offsetHeight * 0.5;
                     const rectX = (video.videoWidth - rectWidth) / 2;
                     const rectY = (video.videoHeight - rectHeight) / 2;
 

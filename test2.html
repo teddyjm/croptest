@@ -4,11 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Camera and Crop</title>
-    <link href="https://cdn.jsdelivr.net/npm/cropperjs@1.5.12/dist/cropper.min.css" rel="stylesheet">
     <style>
         #videoElement, #preview, #croppedImage {
             max-width: 100%;
             margin-bottom: 20px;
+        }
+        #overlay {
+            position: absolute;
+            border: 2px dashed red;
+            pointer-events: none;
+        }
+        #canvasContainer {
+            position: relative;
+            display: inline-block;
         }
     </style>
 </head>
@@ -16,24 +24,24 @@
     <button id="startButton">Start</button>
     <video id="videoElement" autoplay></video>
     <button id="takePhotoButton" style="display:none;">Take Photo</button>
-    <img id="preview" style="display:none;">
-    <div id="cropContainer" style="display:none;">
-        <button id="cropButton">Crop</button>
+    <div id="canvasContainer">
+        <canvas id="preview" style="display:none;"></canvas>
+        <div id="overlay" style="display:none;"></div>
     </div>
+    <button id="cropButton" style="display:none;">Crop</button>
     <img id="croppedImage" style="display:none;">
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/cropperjs@1.5.12/dist/cropper.min.js"></script>
     <script>
         $(document).ready(function() {
     const video = document.getElementById('videoElement');
     const startButton = $('#startButton');
     const takePhotoButton = $('#takePhotoButton');
     const preview = $('#preview');
-    const cropContainer = $('#cropContainer');
+    const overlay = $('#overlay');
     const cropButton = $('#cropButton');
     const croppedImage = $('#croppedImage');
-    let cropper;
+    let canvasContext, cropper;
 
     // Start video stream
     startButton.click(function() {
@@ -48,36 +56,55 @@
 
     // Capture photo
     takePhotoButton.click(function() {
-        const canvas = document.createElement('canvas');
+        const canvas = document.getElementById('preview');
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
-        const context = canvas.getContext('2d');
-        context.drawImage(video, 0, 0, canvas.width, canvas.height);
-        const dataUrl = canvas.toDataURL('image/png');
-        preview.attr('src', dataUrl).show();
-        cropContainer.show();
+        canvasContext = canvas.getContext('2d');
+        canvasContext.drawImage(video, 0, 0, canvas.width, canvas.height);
+        preview.show();
+        cropButton.show();
         video.srcObject.getTracks().forEach(track => track.stop()); // Stop video stream
 
-        // Initialize Cropper.js
-        if (cropper) {
-            cropper.destroy();
-        }
-        cropper = new Cropper(preview[0], {
-            aspectRatio: 1, // You can set this to your preferred aspect ratio
-            viewMode: 1
-        });
+        // Set up the overlay for cropping
+        const rectWidth = canvas.width / 2;
+        const rectHeight = canvas.height / 2;
+        const rectX = (canvas.width - rectWidth) / 2;
+        const rectY = (canvas.height - rectHeight) / 2;
+
+        overlay.css({
+            width: rectWidth,
+            height: rectHeight,
+            left: rectX,
+            top: rectY
+        }).show();
     });
 
     // Crop the image
     cropButton.click(function() {
-        const croppedCanvas = cropper.getCroppedCanvas();
+        const canvas = document.getElementById('preview');
+        const rectWidth = overlay.width();
+        const rectHeight = overlay.height();
+        const rectX = overlay.position().left;
+        const rectY = overlay.position().top;
+
+        const croppedCanvas = document.createElement('canvas');
+        croppedCanvas.width = rectWidth;
+        croppedCanvas.height = rectHeight;
+        const croppedContext = croppedCanvas.getContext('2d');
+        croppedContext.drawImage(canvas, rectX, rectY, rectWidth, rectHeight, 0, 0, rectWidth, rectHeight);
         const croppedDataUrl = croppedCanvas.toDataURL('image/png');
         croppedImage.attr('src', croppedDataUrl).show();
+
+        // Hide elements after cropping
+        preview.hide();
+        overlay.hide();
+        cropButton.hide();
 
         // You can now save `croppedDataUrl` or upload it to a server
     });
 });
 
+        
     </script>
 </body>
 </html>
